@@ -152,11 +152,7 @@ const Navbar = () => {
           </div>
         )}
       </header>
-      <CartDrawer
-        open={openCart}
-        onOpenChange={setOpenCart}
-        cartData={mockCartData}
-      />
+      <CartDrawer open={openCart} onOpenChange={setOpenCart} />
     </>
   );
 };

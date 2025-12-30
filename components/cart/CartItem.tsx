@@ -6,38 +6,36 @@ import { CartLineNode } from "../../types/cart";
 
 interface CartItemProps {
   item: CartLineNode;
-  onQuantityChange?: (id: string, newQuantity: number) => void;
   onRemove?: (id: string) => void;
   onEdit?: (id: string) => void;
 }
 
-const CartItem = ({
-  item,
-  onQuantityChange,
-  onRemove,
-  onEdit,
-}: CartItemProps) => {
-  const { id, quantity, attributes, merchandise } = item;
+const CartItem = ({ item, onRemove, onEdit }: CartItemProps) => {
+  const { id, quantity, attributes, merchandise, cakeSize } = item;
 
-  const cakeSize =
-    attributes.find((attr) => attr.key === "cakesize")?.value || "18cm";
+  console.log("CartItem attributes:", attributes);
+
+  const cakeWording = attributes.find((attr) =>
+    attr.key.toLowerCase().includes("cake wording")
+  )?.value;
+
+  const greeting = attributes.find((attr) =>
+    attr.key.toLowerCase().includes("greeting")
+  )?.value;
+
+  let displayText = cakeSize;
+  if (!displayText?.includes("cm") && displayText !== "SLICE") {
+    displayText += "cm";
+  }
+  if (cakeWording) displayText += " with cake wording";
+  if (greeting) displayText += " with greeting";
+
+  const productTitle = merchandise.product?.title || "Product";
 
   // const displayAttributes = attributes
   //   .filter((attr) => attr.value && !attr.key.toLowerCase().includes("size"))
   //   .map((attr) => `${attr.key}: ${attr.value}`)
   //   .join(", ");
-
-  const handleDecrease = () => {
-    if (quantity > 1 && onQuantityChange) {
-      onQuantityChange(id, quantity - 1);
-    }
-  };
-
-  const handleIncrease = () => {
-    if (onQuantityChange) {
-      onQuantityChange(id, quantity + 1);
-    }
-  };
 
   const handleRemove = () => {
     if (onRemove) {
@@ -62,7 +60,7 @@ const CartItem = ({
         <div className="relative w-20 h-20 flex-shrink-0">
           <Image
             src={merchandise.image.url}
-            alt={merchandise.product?.title || "Product"}
+            alt={productTitle || "Product"}
             fill
             className="object-cover rounded"
           />
@@ -73,9 +71,9 @@ const CartItem = ({
           <div className="flex justify-between items-start mb-2">
             <div>
               <h3 className="font-semibold text-sm uppercase text-[#211D1F]">
-                {merchandise.product?.title || "Product"}
+                {productTitle}
               </h3>
-              <p className="text-xs text-gray-600">{cakeSize}</p>
+              <p className="text-xs text-gray-600">{displayText}</p>
               {/* {displayAttributes && (
                 <p className="text-xs text-gray-600 mt-1">
                   {displayAttributes}

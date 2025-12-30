@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Rozha_One, EB_Garamond } from "next/font/google";
 import "./globals.css";
+import { QueryProvider } from "@/providers/QueryProviders";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -36,7 +37,9 @@ export default function RootLayout({
       lang="en"
       className={`${montserrat.variable} ${rozhaOne.variable} ${ebGaramond.variable}`}
     >
-      <body className={montserrat.className}>{children}</body>
+      <body className={montserrat.className}>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   );
 }

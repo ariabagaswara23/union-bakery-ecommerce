@@ -2,42 +2,30 @@
 
 import Image from "next/image";
 import { Button } from "../ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "../ui/drawer";
-import { X, ShoppingCart, Trash2 } from "lucide-react";
+import { Drawer, DrawerContent, DrawerFooter } from "../ui/drawer";
 import { CartData } from "../../types/cart";
-import CartItem from "./CartItem";
 import CartList from "./CartList";
 import { useState } from "react";
 import CartEdit from "./CartEdit";
 import CartDelivery from "./CartDelivery";
+import { useEnrichedCart } from "@/hooks/useCart";
 
 interface CartDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  cartData?: CartData;
 }
 
 type CartStep = "cart" | "edit" | "delivery";
 
-export function CartDrawer({ open, onOpenChange, cartData }: CartDrawerProps) {
-  const cartItems = cartData?.nodes || [];
+export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
+  const { cartItems, isLoading, isError, subtotal } = useEnrichedCart();
+
+  const formatPrice = (amount: number) => {
+    return Math.round(amount / 1000);
+  };
 
   const [currentStep, setCurrentStep] = useState<CartStep>("cart");
   const [editingItem, setEditingItem] = useState<any>(null);
-
-  const subtotal = cartItems.reduce(
-    (sum, item) =>
-      sum + parseFloat(item.merchandise.price.amount) * item.quantity,
-    0
-  );
 
   const handleEdit = (id: string) => {
     const item = cartItems.find((item) => item.id === id);
@@ -68,7 +56,14 @@ export function CartDrawer({ open, onOpenChange, cartData }: CartDrawerProps) {
   const renderStepContent = () => {
     switch (currentStep) {
       case "cart":
-        return <CartList cartItems={cartItems} onEdit={handleEdit} />;
+        return (
+          <CartList
+            cartItems={cartItems}
+            onEdit={handleEdit}
+            isLoading={isLoading}
+            isError={isError}
+          />
+        );
       case "edit":
         return (
           <CartEdit
@@ -110,7 +105,7 @@ export function CartDrawer({ open, onOpenChange, cartData }: CartDrawerProps) {
                   style={{ fontFamily: "var(--font-rozha)" }}
                   className="text-[#661419] text-2xl font-normal"
                 >
-                  {Math.round(subtotal / 1000)}
+                  {formatPrice(subtotal)}
                 </span>
               </div>
               <Button

@@ -1,11 +1,144 @@
-import React from "react";
+"use client";
 import Image from "next/image";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
+import { useProductDetail } from "@/hooks/useProducts";
+import { useState } from "react";
+import { useAddToCart } from "@/hooks/useCart";
+import { Input } from "../ui/input";
 
-const ProductDetail = () => {
+interface ProductDetailProps {
+  slug: string;
+}
+
+const ProductDetail = ({ slug }: ProductDetailProps) => {
+  const { data, isLoading, isError, error } = useProductDetail(slug);
+  const addToCart = useAddToCart();
+
+  const [quantity, setQuantity] = useState(1);
+  const [selectedSize, setSelectedSize] = useState<string>("18");
+  const [hasCakeWording, setHasCakeWording] = useState(false);
+  const [cakeWording, setCakeWording] = useState("");
+  const [hasGreeting, setHasGreeting] = useState(false);
+  const [greetingWording, setGreetingWording] = useState("");
+
+  if (isLoading) {
+    return (
+      <section className="relative min-h-screen">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/image/product/detail-background.jpg"
+            alt="Background"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="relative z-10 grid md:grid-cols-2 items-start gap-8 p-6 md:p-0">
+          <div className="animate-pulse">
+            <div className="bg-gray-200 h-125 md:h-150 rounded"></div>
+          </div>
+          <div className="p-8 space-y-6 pb-32 animate-pulse">
+            <div className="bg-gray-200 h-8 rounded w-3/4"></div>
+            <div className="bg-gray-200 h-6 rounded w-1/4"></div>
+            <div className="bg-gray-200 h-24 rounded"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (isError || !data?.success || !data.data) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/image/product/detail-background.jpg"
+            alt="Background"
+            fill
+            className="object-cover"
+          />
+        </div>
+        <div className="relative z-10 text-center bg-white p-8 rounded-lg">
+          <h2 className="text-2xl font-bold text-raisin-black mb-4">
+            {error?.message === "Product not found"
+              ? "Produk Tidak Ditemukan"
+              : "Terjadi Kesalahan"}
+          </h2>
+          <a
+            href="/products"
+            className="inline-block bg-army-green text-white px-6 py-3 rounded font-semibold uppercase"
+          >
+            Back to Shop
+          </a>
+        </div>
+      </section>
+    );
+  }
+
+  const product = data.data;
+  const sizeOption = product.options.find((opt) => opt.name === "Size");
+
+  const formatPrice = (amount: string) => {
+    return Math.round(parseFloat(amount) / 1000);
+  };
+
+  const currentVariant =
+    product.variants.nodes.find((v) =>
+      v.selectedOptions.some(
+        (opt) => opt.name === "Size" && opt.value === selectedSize
+      )
+    ) || product.variants.nodes[0];
+
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = quantity + delta;
+    if (newQuantity >= 1) {
+      setQuantity(newQuantity);
+    }
+  };
+
+  const handleAddToCart = () => {
+    // Validate variant
+    if (!currentVariant?.id) {
+      alert("Please select a size");
+      return;
+    }
+
+    // Prepare cart input
+    const cartInput = {
+      variantId: currentVariant.id,
+      quantity,
+      cakeSize: selectedSize,
+      cakeWording: hasCakeWording ? cakeWording : undefined,
+      greetingWording: hasGreeting ? greetingWording : undefined,
+      // ✅ Metadata untuk localStorage
+      productTitle: product.title, // From API
+      productHandle: product.handle, // From API
+      price: currentVariant.price.amount, // From API
+      imageUrl: product.images.nodes[0]?.url, // From API
+    };
+
+    console.log("Adding to cart:", cartInput);
+
+    // Call mutation
+    addToCart.mutate(cartInput);
+  };
+
+  if (addToCart.isSuccess) {
+    setTimeout(() => {
+      alert("Product added to cart!");
+      addToCart.reset(); // Reset mutation state
+    }, 100);
+  }
+
+  if (addToCart.isError) {
+    setTimeout(() => {
+      alert(`Failed to add to cart: ${addToCart.error?.message}`);
+      addToCart.reset(); // Reset mutation state
+    }, 100);
+  }
+
   return (
     <section className="relative min-h-screen">
       <div className="absolute inset-0 z-0">
@@ -18,29 +151,31 @@ const ProductDetail = () => {
       </div>
       <div className="relative z-10 grid md:grid-cols-2 items-start gap-8 p-6 md:p-0">
         <div className="relative h-125 md:h-150 top-0">
-          <Image
-            src="/image/Cake1.png"
-            alt="Red Velvet Cake"
-            fill
-            className="object-contain"
-          />
+          {product.images.nodes[0] && (
+            <Image
+              src={product.images.nodes[0].url}
+              alt={product.title}
+              fill
+              className="object-contain"
+            />
+          )}
         </div>
         <div className="p-8 space-y-6 pb-32">
           <span className="badge">BEST SELLER</span>
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-bold mb-2 text-black">
-                RED VELVET CAKE
+                {product.title}
               </h1>
               <p className="text-[#211D1F] font-normal text-sm">
-                Red velvet sponge, cream cheese, nougat, rum
+                {product.description}
               </p>
             </div>
             <span
               style={{ fontFamily: "var(--font-rozha)" }}
               className="text-3xl font-normal text-[#661419]"
             >
-              900
+              {formatPrice(currentVariant.price.amount)}
             </span>
           </div>
           <hr className="h-1 text-[#211D1F]" />
@@ -49,7 +184,8 @@ const ProductDetail = () => {
               Cake Size
             </h2>
             <RadioGroup
-              defaultValue="20"
+              value={selectedSize}
+              onValueChange={setSelectedSize}
               className="grid grid-cols-2 lg:grid-cols-4 gap-3"
             >
               <div>
@@ -148,14 +284,23 @@ const ProductDetail = () => {
               </div>
               <Checkbox
                 id="cake-wording"
-                className="w-6 h-6 border-2 border-black"
+                checked={hasCakeWording}
+                onCheckedChange={(checked) =>
+                  setHasCakeWording(checked as boolean)
+                }
+                className="w-6 h-6 border-2 border-black text-[#211D1F]"
               />
             </div>
-            {/* <input
-              type="text"
-              className="w-full border border-gray-300 p-3 rounded focus:border-[#8b4513] focus:outline-none"
-              maxLength={50}
-            /> */}
+            {hasCakeWording && (
+              <Input
+                type="text"
+                value={cakeWording}
+                onChange={(e) => setCakeWording(e.target.value)}
+                placeholder="Enter cake wording"
+                maxLength={50}
+                className="w-full mt-2 text-[#211D1F] border border-[#211D1F]/70"
+              />
+            )}
           </div>
           <hr className="h-1 border-dashed text-[#333333]" />
           <div className="">
@@ -173,14 +318,23 @@ const ProductDetail = () => {
               </div>
               <Checkbox
                 id="cake-greeting-card"
-                className="w-6 h-6 border-2 border-black"
+                checked={hasGreeting}
+                onCheckedChange={(checked) =>
+                  setHasGreeting(checked as boolean)
+                }
+                className="w-6 h-6 border-2 border-black text-[#211D1F]"
               />
             </div>
-            {/* <input
-              type="text"
-              className="w-full border border-gray-300 p-3 rounded focus:border-[#8b4513] focus:outline-none"
-              maxLength={50}
-            /> */}
+            {hasGreeting && (
+              <Input
+                type="text"
+                value={greetingWording}
+                onChange={(e) => setGreetingWording(e.target.value)}
+                placeholder="Enter greeting message"
+                maxLength={100}
+                className="w-full mt-2 text-[#211D1F] border border-[#211D1F]/70"
+              />
+            )}
           </div>
           <hr className="h-1 text-[#333333]" />
           <div>
@@ -225,16 +379,18 @@ const ProductDetail = () => {
                       <Button
                         variant="outline"
                         size="icon"
+                        onClick={() => handleQuantityChange(-1)}
                         className="w-6 h-6 bg-transparent rounded-full border-2 border-gray-400 hover:border-[#5a6e3a]"
                       >
                         <span className="text-xl text-gray-600">-</span>
                       </Button>
                       <span className="text-xl font-bold text-[#211D1F] w-8 text-center">
-                        1
+                        {quantity}
                       </span>
                       <Button
                         variant="outline"
                         size="icon"
+                        onClick={() => handleQuantityChange(1)}
                         className="w-6 h-6 bg-transparent rounded-full border-2 border-gray-400 hover:border-[#5a6e3a]"
                       >
                         <span className="text-xl text-gray-600">+</span>
@@ -242,8 +398,18 @@ const ProductDetail = () => {
                     </div>
                   </div>
                 </div>
-                <Button className="bg-[#5a6e3a] hover:bg-[#4a5e2a] text-white px-12 py-4 rounded font-semibold uppercase max-w-37.5">
-                  Add to Cart
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={
+                    !currentVariant.availableForSale || addToCart.isPending
+                  }
+                  className="bg-[#5a6e3a] hover:bg-[#4a5e2a] text-white px-12 py-4 rounded font-semibold uppercase max-w-37.5"
+                >
+                  {addToCart.isPending
+                    ? "Adding..."
+                    : !currentVariant.availableForSale
+                    ? "Out of Stock"
+                    : "Add to Cart"}
                 </Button>
               </div>
             </div>
