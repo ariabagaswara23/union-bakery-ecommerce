@@ -1,15 +1,15 @@
 "use client";
-import { Button } from "@/app/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/app/components/ui/card";
-import { Checkbox } from "@/app/components/ui/checkbox";
-import { Input } from "@/app/components/ui/input";
-import { Label } from "@/app/components/ui/label";
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeClosed } from "lucide-react";
