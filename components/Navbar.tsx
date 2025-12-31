@@ -5,13 +5,27 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { CartDrawer } from "./cart/Cart";
-import { mockCartData } from "../lib/mockdata";
+import { useIsAuthenticated, useLogout } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { ChevronDown, LogOut, User } from "lucide-react";
+import { useCustomer } from "@/hooks/useCustomer";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [openCart, setOpenCart] = useState(false);
   const pathname = usePathname();
+
+  const isAuthenticated = useIsAuthenticated();
+  const { data: customerData, isLoading: isLoadingCustomer } = useCustomer();
+  const logout = useLogout();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -28,6 +42,15 @@ const Navbar = () => {
       ? "bg-[#3F4B1F]"
       : "bg-transparent"
     : "bg-[#3F4B1F]";
+
+  const customer = customerData?.data;
+  const customerName = customer
+    ? `${customer.firstName} ${customer.lastName}`.trim()
+    : null;
+
+  const handleLogout = () => {
+    logout.mutate();
+  };
 
   return (
     <>
@@ -76,13 +99,40 @@ const Navbar = () => {
               >
                 Cart
               </button>
-              <Link
-                href="/login"
-                className="hidden md:flex text-white hover:text-gray-300 font-bold text-xs uppercase"
-              >
-                Account
-              </Link>
-
+              {isAuthenticated && customerName ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="text-white hover:text-gray-300 font-bold text-xs uppercase hidden md:flex items-center gap-1 outline-none">
+                    <User className="w-4 h-4" />
+                    {customerName}
+                    <ChevronDown className="w-3 h-3" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-48 bg-white z-[999]"
+                  >
+                    <DropdownMenuLabel className="text-[#211D1F]">
+                      My Account
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-red-600 focus:text-red-600 text-xs uppercase"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : isLoadingCustomer ? (
+                <div className="text-white text-xs uppercase">Loading...</div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="hidden md:flex text-white hover:text-gray-300 font-bold text-xs uppercase"
+                >
+                  Account
+                </Link>
+              )}
               {/* Hamburger */}
               <div className="md:hidden">
                 <button
@@ -142,12 +192,31 @@ const Navbar = () => {
               >
                 FAQ
               </Link>
-              <Link
-                href="/login"
-                className="text-white hover:text-gray-300 font-bold text-xs uppercase"
-              >
-                Account
-              </Link>
+              <div className="w-full border-t border-white my-2"></div>
+              {isAuthenticated && customerName ? (
+                <>
+                  <div className="text-white font-bold text-sm uppercase mt-2">
+                    Hello, {customerName}!
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="text-red-300 hover:text-red-400 font-bold text-xs uppercase"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-white hover:text-gray-300 font-bold text-xs uppercase"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+              )}
             </nav>
           </div>
         )}

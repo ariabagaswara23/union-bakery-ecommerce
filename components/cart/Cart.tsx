@@ -27,30 +27,18 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const [currentStep, setCurrentStep] = useState<CartStep>("cart");
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  const handleEdit = (id: string) => {
-    const item = cartItems.find((item) => item.id === id);
+  const handleEdit = (itemId: string) => {
+    const item = cartItems.find((i) => i.id === itemId);
     if (item) {
       setEditingItem(item);
       setCurrentStep("edit");
     }
   };
 
-  const handleSaveEdit = (
-    id: string,
-    quantity: number,
-    cakeWording: string,
-    greeting: string
-  ) => {
-    console.log("Save edit:", { id, quantity, cakeWording, greeting });
-    // Add your API call to update cart here
-    setCurrentStep("cart");
-    setEditingItem(null);
-  };
-
-  const handleProceedToCheckout = (deliveryData: any) => {
-    console.log("Proceed to checkout with:", deliveryData);
-    // Add your checkout logic here
+  const handleCheckoutSuccess = () => {
     onOpenChange(false);
+    setCurrentStep("cart");
+    window.location.href = "/";
   };
 
   const renderStepContent = () => {
@@ -68,15 +56,17 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         return (
           <CartEdit
             item={editingItem}
-            onBack={() => setCurrentStep("cart")}
-            onSave={handleSaveEdit}
+            onBack={() => {
+              setCurrentStep("cart");
+              setEditingItem(null);
+            }}
           />
         );
       case "delivery":
         return (
           <CartDelivery
             onBack={() => setCurrentStep("cart")}
-            onProceed={handleProceedToCheckout}
+            onSuccess={handleCheckoutSuccess}
           />
         );
       default:

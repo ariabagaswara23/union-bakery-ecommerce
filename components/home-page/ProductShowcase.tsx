@@ -17,10 +17,7 @@ const ProductShowcase = () => {
       <div className="absolute inset-x-0 bottom-0 z-10">
         <div className="container mx-auto px-4">
           <div className="relative md:max-w-xl">
-            {/* Blurred background layer */}
             <div className="absolute inset-0 bg-black/10 blur-[150px] rounded-lg"></div>
-
-            {/* Content layer on top */}
             <div className="relative z-10 p-6 md:p-8">
               <h1 className="text-left text-white text-xl md:text-3xl font-bold leading-tight">
                 UNION MADE IS WELL MADE

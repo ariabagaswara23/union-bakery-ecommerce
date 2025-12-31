@@ -8,10 +8,10 @@ export function useProducts(
   return useQuery({
     queryKey: ['products', 'all'],
     queryFn: fetchAllProducts,
-    staleTime: 5 * 60 * 1000, // 5 menit - data dianggap fresh
-    gcTime: 10 * 60 * 1000, // 10 menit - data disimpan di cache (dulu namanya cacheTime)
-    retry: 2, // Retry 2x kalau gagal
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 2,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     ...options,
   })
 }
@@ -23,10 +23,10 @@ export function useProductDetail(
   return useQuery({
     queryKey: ['product', slug],
     queryFn: () => fetchProductBySlug(slug),
-    staleTime: 5 * 60 * 1000, // 5 menit
-    gcTime: 10 * 60 * 1000, // 10 menit
-    retry: 1, // Hanya retry 1x untuk detail page
-    enabled: !!slug, // Hanya fetch kalau slug ada
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
+    enabled: !!slug,
     ...options,
   })
 }

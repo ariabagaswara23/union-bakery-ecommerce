@@ -5,9 +5,10 @@ import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
 import { useProductDetail } from "@/hooks/useProducts";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAddToCart } from "@/hooks/useCart";
 import { Input } from "../ui/input";
+import { useAlert } from "@/contexts/AlertContext";
 
 interface ProductDetailProps {
   slug: string;
@@ -17,12 +18,39 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
   const { data, isLoading, isError, error } = useProductDetail(slug);
   const addToCart = useAddToCart();
 
+  const { showAlert } = useAlert();
+
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState<string>("18");
   const [hasCakeWording, setHasCakeWording] = useState(false);
   const [cakeWording, setCakeWording] = useState("");
   const [hasGreeting, setHasGreeting] = useState(false);
   const [greetingWording, setGreetingWording] = useState("");
+
+  useEffect(() => {
+    if (addToCart.isSuccess) {
+      showAlert("success", "Product added to cart!");
+      addToCart.reset();
+    }
+  }, [addToCart.isSuccess]);
+
+  useEffect(() => {
+    if (addToCart.isError) {
+      const errorMessage = addToCart.error?.message || "Failed to add to cart";
+
+      if (errorMessage.includes("timeout")) {
+        showAlert(
+          "warning",
+          "Adding to cart is taking longer than usual. Your item may have been added. Please check your cart or refresh the page.",
+          "Request Timeout"
+        );
+      } else {
+        showAlert("error", errorMessage);
+      }
+
+      addToCart.reset();
+    }
+  }, [addToCart.isError]);
 
   if (isLoading) {
     return (
@@ -99,45 +127,25 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
   };
 
   const handleAddToCart = () => {
-    // Validate variant
     if (!currentVariant?.id) {
       alert("Please select a size");
       return;
     }
 
-    // Prepare cart input
     const cartInput = {
       variantId: currentVariant.id,
       quantity,
       cakeSize: selectedSize,
       cakeWording: hasCakeWording ? cakeWording : undefined,
       greetingWording: hasGreeting ? greetingWording : undefined,
-      // ✅ Metadata untuk localStorage
-      productTitle: product.title, // From API
-      productHandle: product.handle, // From API
-      price: currentVariant.price.amount, // From API
-      imageUrl: product.images.nodes[0]?.url, // From API
+      productTitle: product.title,
+      productHandle: product.handle,
+      price: currentVariant.price.amount,
+      imageUrl: product.images.nodes[0]?.url,
     };
 
-    console.log("Adding to cart:", cartInput);
-
-    // Call mutation
     addToCart.mutate(cartInput);
   };
-
-  if (addToCart.isSuccess) {
-    setTimeout(() => {
-      alert("Product added to cart!");
-      addToCart.reset(); // Reset mutation state
-    }, 100);
-  }
-
-  if (addToCart.isError) {
-    setTimeout(() => {
-      alert(`Failed to add to cart: ${addToCart.error?.message}`);
-      addToCart.reset(); // Reset mutation state
-    }, 100);
-  }
 
   return (
     <section className="relative min-h-screen">
@@ -156,11 +164,11 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
               src={product.images.nodes[0].url}
               alt={product.title}
               fill
-              className="object-contain"
+              className="object-cover"
             />
           )}
         </div>
-        <div className="p-8 space-y-6 pb-32">
+        <div className="p-4 md:p-8 space-y-6 pb-32">
           <span className="badge">BEST SELLER</span>
           <div className="flex justify-between items-start">
             <div>
@@ -173,101 +181,48 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
             </div>
             <span
               style={{ fontFamily: "var(--font-rozha)" }}
-              className="text-3xl font-normal text-[#661419]"
+              className="text-3xl font-normal text-[#661419] w-1/4 text-end"
             >
               {formatPrice(currentVariant.price.amount)}
             </span>
           </div>
           <hr className="h-1 text-[#211D1F]" />
-          <div>
-            <h2 className="text-lg font-semibold text-[#211D1F] uppercase">
-              Cake Size
-            </h2>
-            <RadioGroup
-              value={selectedSize}
-              onValueChange={setSelectedSize}
-              className="grid grid-cols-2 lg:grid-cols-4 gap-3"
-            >
-              <div>
-                <RadioGroupItem
-                  value="18"
-                  id="size-18"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="size-18"
-                  className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
-                >
-                  <div
-                    style={{ fontFamily: "var(--font-rozha)" }}
-                    className="text-[32px] text-[#661419] font-bold"
-                  >
-                    18
+          {sizeOption && (
+            <div>
+              <h2 className="text-lg font-semibold text-[#211D1F] uppercase">
+                Cake Size
+              </h2>
+              <RadioGroup
+                value={selectedSize}
+                onValueChange={setSelectedSize}
+                className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+              >
+                {sizeOption.optionValues.map((option) => (
+                  <div key={option.id}>
+                    <RadioGroupItem
+                      value={option.name}
+                      id={option.id}
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor={option.id}
+                      className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
+                    >
+                      <div
+                        style={{ fontFamily: "var(--font-rozha)" }}
+                        className="text-[32px] text-[#661419] font-bold"
+                      >
+                        {option.name}
+                      </div>
+                      {option.name !== "SLICE" && (
+                        <div className="text-sm text-[#211D1F]">cm</div>
+                      )}
+                    </Label>
                   </div>
-                  <div className="text-sm text-[#211D1F]">cm</div>
-                </Label>
-              </div>
-
-              <div>
-                <RadioGroupItem
-                  value="20"
-                  id="size-20"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="size-20"
-                  className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
-                >
-                  <div
-                    style={{ fontFamily: "var(--font-rozha)" }}
-                    className="text-[32px] text-[#661419] font-bold"
-                  >
-                    20
-                  </div>
-                  <div className="text-sm text-[#211D1F]">cm</div>
-                </Label>
-              </div>
-
-              <div>
-                <RadioGroupItem
-                  value="24"
-                  id="size-24"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="size-24"
-                  className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
-                >
-                  <div
-                    style={{ fontFamily: "var(--font-rozha)" }}
-                    className="text-[32px] text-[#661419] font-bold"
-                  >
-                    24
-                  </div>
-                  <div className="text-sm text-[#211D1F]">cm</div>
-                </Label>
-              </div>
-
-              <div>
-                <RadioGroupItem
-                  value="slice"
-                  id="size-slice"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="size-slice"
-                  className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
-                >
-                  <div
-                    style={{ fontFamily: "var(--font-rozha)" }}
-                    className="text-[32px] text-[#661419] font-semibold"
-                  >
-                    SLICE
-                  </div>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+                ))}
+              </RadioGroup>
+            </div>
+          )}
           <hr className="h-1 border-dashed text-[#333333]" />
           <div className="">
             <div className="flex items-center justify-between mb-2">
@@ -379,6 +334,7 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
                       <Button
                         variant="outline"
                         size="icon"
+                        aria-label="decrease quantity"
                         onClick={() => handleQuantityChange(-1)}
                         className="w-6 h-6 bg-transparent rounded-full border-2 border-gray-400 hover:border-[#5a6e3a]"
                       >
@@ -390,6 +346,7 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
                       <Button
                         variant="outline"
                         size="icon"
+                        aria-label="increase quantity"
                         onClick={() => handleQuantityChange(1)}
                         className="w-6 h-6 bg-transparent rounded-full border-2 border-gray-400 hover:border-[#5a6e3a]"
                       >

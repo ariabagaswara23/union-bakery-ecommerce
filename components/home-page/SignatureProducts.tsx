@@ -24,7 +24,7 @@ const SignatureProducts = () => {
           </div>
           <div className="overflow-x-auto md:overflow-x-visible -mx-4 px-4 md:mx-0 md:px-0">
             <div className="flex md:grid md:grid-cols-3 gap-6 min-w-max md:min-w-0">
-              {[1, 2, 3].map((i) => (
+              {Array.from({ length: 4 }, (_, i) => (
                 <Card
                   key={i}
                   className="bg-transparent border-none shadow-none rounded-none flex-shrink-0 w-64 md:w-auto"
@@ -47,7 +47,7 @@ const SignatureProducts = () => {
     return null;
   }
 
-  const signatureProducts = data.data.slice(0, 3);
+  const signatureProducts = data.data.slice(0, 4);
   return (
     <section className="py-10 md:py-20 bg-white">
       <div className="flex flex-col gap-6 px-4 md:px-10">
@@ -62,7 +62,7 @@ const SignatureProducts = () => {
           </Link>
         </div>
         <div className="overflow-x-auto md:overflow-x-visible -mx-4 px-4 md:mx-0 md:px-0">
-          <div className="flex md:grid md:grid-cols-3 gap-6 min-w-max md:min-w-0">
+          <div className="flex md:grid md:grid-cols-4 gap-6 min-w-max md:min-w-0">
             {signatureProducts.map((product) => (
               <Link key={product.id} href={`/products/${product.handle}`}>
                 <Card className="bg-transparent border-none shadow-none rounded-none flex-shrink-0 w-64 md:w-auto">

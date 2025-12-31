@@ -39,6 +39,7 @@ export async function addCartLine(
   return cartLimiter.throttle(async () => {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     }
 
     if (accessToken) {

@@ -2,9 +2,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createCheckout } from '@/lib/api/checkout'
 import { CheckoutInput } from '@/types/checkout'
 import { clearCart } from './useCart'
+import { useAlert } from '@/contexts/AlertContext'
 
 export function useCheckout() {
   const queryClient = useQueryClient()
+  const { showAlert } = useAlert()
 
   return useMutation({
     mutationFn: ({ input, accessToken }: { input: CheckoutInput; accessToken: string }) => {
@@ -13,15 +15,13 @@ export function useCheckout() {
     onSuccess: (data) => {
       console.log('Checkout successful:', data)
       
-      // Clear cart dari localStorage
       clearCart()
       
-      // Invalidate cart & customer queries
       queryClient.invalidateQueries({ queryKey: ['cart'] })
       queryClient.invalidateQueries({ queryKey: ['customer'] })
     },
     onError: (error) => {
-      console.error('Checkout failed:', error)
+      showAlert('error', `Checkout failed: ${error}`)
     },
   })
 }

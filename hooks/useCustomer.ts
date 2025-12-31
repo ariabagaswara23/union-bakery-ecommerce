@@ -5,7 +5,6 @@ import { CustomerResponse } from '@/types/customer'
 export function useCustomer(
   options?: Omit<UseQueryOptions<CustomerResponse>, 'queryKey' | 'queryFn'>
 ) {
-  // Get access token from localStorage (nanti bisa dari auth context)
   const accessToken = typeof window !== 'undefined' 
     ? localStorage.getItem('accessToken') 
     : null
@@ -18,10 +17,10 @@ export function useCustomer(
       }
       return getCustomer(accessToken)
     },
-    enabled: !!accessToken, // Only fetch if token exists
-    staleTime: 5 * 60 * 1000, // 5 minutes - user data jarang berubah
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 1, // Only retry once (kalau 401, langsung fail)
+    enabled: !!accessToken,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 1,
     ...options,
   })
 }

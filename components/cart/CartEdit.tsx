@@ -1,28 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Checkbox } from "../ui/checkbox";
-import { DrawerHeader, DrawerTitle, DrawerClose } from "../ui/drawer";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { DrawerHeader, DrawerTitle } from "../ui/drawer";
+import { Minus, Plus } from "lucide-react";
 import { CartLineNode } from "../../types/cart";
+import { useUpdateCartLine, getCartId } from "@/hooks/useCart";
+import { useAlert } from "@/contexts/AlertContext";
 
 interface CartEditProps {
-  item: CartLineNode;
+  item: CartLineNode & {
+    cakeSize?: string;
+  };
   onBack: () => void;
-  onSave: (
-    id: string,
-    quantity: number,
-    cakeWording: string,
-    greeting: string
-  ) => void;
 }
 
-const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
+const CartEdit = ({ item, onBack }: CartEditProps) => {
   const { id, quantity: initialQuantity, attributes, merchandise } = item;
+  const updateCartLine = useUpdateCartLine();
+  const { showAlert } = useAlert();
 
   const initialCakeWording =
     attributes.find((attr) => attr.key.toLowerCase().includes("cake wording"))
@@ -30,8 +29,6 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
   const initialGreeting =
     attributes.find((attr) => attr.key.toLowerCase().includes("greeting"))
       ?.value || "";
-  const cakeSize =
-    attributes.find((attr) => attr.key === "cakesize")?.value || "18cm";
 
   const [quantity, setQuantity] = useState(initialQuantity);
   const [hasCakeWording, setHasCakeWording] = useState(!!initialCakeWording);
@@ -39,94 +36,60 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
   const [hasGreeting, setHasGreeting] = useState(!!initialGreeting);
   const [greeting, setGreeting] = useState(initialGreeting);
 
-  const formatPrice = (amount: string) => {
-    return Math.round(parseFloat(amount) / 1000);
+  const formatPrice = (amount: string | number) => {
+    return Math.round(parseFloat(amount.toString()) / 1000);
   };
 
   const handleSave = () => {
-    onSave(
-      id,
+    const cartId = getCartId();
+
+    if (!cartId) {
+      showAlert("error", "Cart ID not found");
+      return;
+    }
+
+    const updateInput = {
+      cartId,
+      lineId: id,
       quantity,
-      hasCakeWording ? cakeWording : "",
-      hasGreeting ? greeting : ""
-    );
+      cakeWording: hasCakeWording ? cakeWording : undefined,
+      greetingWording: hasGreeting ? greeting : undefined,
+    };
+
+    updateCartLine.mutate(updateInput, {
+      onSuccess: () => {
+        showAlert("success", "Cart item has been updated");
+
+        setTimeout(() => {
+          onBack();
+        }, 1000);
+      },
+      onError: (error) => {
+        showAlert("error", error.message);
+      },
+    });
   };
 
   return (
     <div className="flex flex-col h-full z-10">
-      <DrawerHeader className="border-b bg-white">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onBack}
-            className="flex-shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5 text-[#211D1F]" />
-          </Button>
-          <DrawerTitle className="text-2xl font-bold text-[#211D1F]">
-            EDIT ITEM
-          </DrawerTitle>
-        </div>
+      <DrawerHeader className="border-b">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onBack}
+          disabled={updateCartLine.isPending}
+          className="flex-shrink-0 uppercase text-sm font-semibold text-[#3F4B1F]"
+        >
+          Back
+        </Button>
+        <DrawerTitle className="text-2xl font-bold text-[#211D1F] uppercase">
+          {merchandise.product?.title || "Product"}
+        </DrawerTitle>
+        <hr className="text-[#211D1F]" />
       </DrawerHeader>
-      <div className="flex-1 overflow-y-auto p-6 bg-white">
-        <div className="space-y-6">
-          <div className="flex gap-4 pb-6 border-b border-dashed">
-            <div className="relative w-20 h-20 flex-shrink-0">
-              <Image
-                src={merchandise.image.url}
-                alt={merchandise.product?.title || "Product"}
-                fill
-                className="object-cover rounded"
-              />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm uppercase text-[#211D1F]">
-                {merchandise.product?.title || "Product"}
-              </h3>
-              <p className="text-xs text-gray-600">{cakeSize}</p>
-              <p
-                style={{ fontFamily: "var(--font-rozha)" }}
-                className="font-normal text-base text-[#661419] mt-1"
-              >
-                {formatPrice(merchandise.price.amount)}
-              </p>
-            </div>
-          </div>
 
-          <div>
-            <Label className="text-sm font-semibold uppercase text-[#211D1F] mb-3 block">
-              Quantity
-            </Label>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-full"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-              >
-                <Minus className="w-4 h-4" />
-              </Button>
-              <span
-                style={{ fontFamily: "var(--font-rozha)" }}
-                className="text-2xl font-normal w-12 text-center text-[#211D1F]"
-              >
-                {quantity}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 rounded-full"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <hr className="border-dashed" />
-
+      <div className="flex-1 overflow-y-auto px-6">
+        <div className="space-y-3">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -146,7 +109,7 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
                 onCheckedChange={(checked) =>
                   setHasCakeWording(checked as boolean)
                 }
-                className="w-6 h-6 border-2 border-[#211D1F]"
+                className="w-6 h-6 border-2 border-[#211D1F] text-[#211D1F]"
               />
             </div>
             {hasCakeWording && (
@@ -156,12 +119,12 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
                 onChange={(e) => setCakeWording(e.target.value)}
                 placeholder="Enter cake wording"
                 maxLength={50}
-                className="w-full"
+                className="w-full text-[#211D1F] border border-[#211D1F]/70"
               />
             )}
           </div>
 
-          <hr className="border-dashed" />
+          <hr className="border-dashed text-[#211D1F]" />
 
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -182,7 +145,7 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
                 onCheckedChange={(checked) =>
                   setHasGreeting(checked as boolean)
                 }
-                className="w-6 h-6 border-2 border-[#211D1F]"
+                className="w-6 h-6 border-2 border-[#211D1F] text-[#211D1F]"
               />
             </div>
             {hasGreeting && (
@@ -192,9 +155,47 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
                 onChange={(e) => setGreeting(e.target.value)}
                 placeholder="Enter greeting message"
                 maxLength={100}
-                className="w-full"
+                className="w-full text-[#211D1F] border border-[#211D1F]/70"
               />
             )}
+          </div>
+
+          <div className="flex justify-between items-center pt-3">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-6 w-6 rounded-full bg-transparent border-[#BDBDBD] text-[#BDBDBD]"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1 || updateCartLine.isPending}
+              >
+                <Minus className="w-4 h-4" />
+              </Button>
+              <span
+                style={{ fontFamily: "var(--font-rozha)" }}
+                className="text-2xl font-normal w-12 text-center text-[#211D1F]"
+              >
+                {quantity}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-6 w-6 rounded-full bg-transparent border-[#3F4B1F] text-[#3F4B1F]"
+                onClick={() => setQuantity(quantity + 1)}
+                disabled={updateCartLine.isPending}
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="text-right">
+              <p
+                style={{ fontFamily: "var(--font-rozha)" }}
+                className="font-normal text-xl text-[#661419]"
+              >
+                {formatPrice(parseFloat(merchandise.price.amount) * quantity)}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -202,9 +203,17 @@ const CartEdit = ({ item, onBack, onSave }: CartEditProps) => {
       <div className="border-t border-[#211D1F] bg-white p-6">
         <Button
           onClick={handleSave}
+          disabled={updateCartLine.isPending}
           className="w-full bg-[#5a6e3a] hover:bg-[#4a5e2a] text-white py-6 uppercase font-semibold"
         >
-          Save Changes
+          {updateCartLine.isPending ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Saving...
+            </div>
+          ) : (
+            "Save Changes"
+          )}
         </Button>
       </div>
     </div>

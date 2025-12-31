@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { CheckCircle2, ShoppingCart, X, XCircle } from "lucide-react";
 import CartItem from "./CartItem";
 import { getCartId, useRemoveCartLine } from "@/hooks/useCart";
+import { useAlert } from "@/contexts/AlertContext";
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
   AlertDialog,
@@ -26,30 +27,13 @@ interface CartListProps {
 
 const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
   const removeCartLine = useRemoveCartLine();
+  const { showAlert } = useAlert();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{
     lineId: string;
     productTitle?: string;
   } | null>(null);
-  const [notification, setNotification] = useState<{
-    show: boolean;
-    type: "success" | "error";
-    message: string;
-  }>({
-    show: false,
-    type: "success",
-    message: "",
-  });
-
-  const showNotification = (type: "success" | "error", message: string) => {
-    setNotification({ show: true, type, message });
-
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      setNotification({ show: false, type: "success", message: "" });
-    }, 3000);
-  };
 
   if (isLoading) {
     return (
@@ -86,12 +70,11 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
     const cartId = getCartId();
 
     if (!cartId) {
-      showNotification("error", "Cart not found");
+      showAlert("error", "Cart not found");
       setShowDeleteDialog(false);
       return;
     }
 
-    // Call API to remove
     removeCartLine.mutate(
       {
         cartId,
@@ -103,12 +86,12 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
             ? `${itemToDelete.productTitle} has been removed from cart`
             : "Item has been removed from cart";
 
-          showNotification("success", message);
+          showAlert("success", message);
           setShowDeleteDialog(false);
           setItemToDelete(null);
         },
         onError: (error) => {
-          showNotification("error", `Failed to remove: ${error.message}`);
+          showAlert("error", `Failed to remove: ${error.message}`);
           setShowDeleteDialog(false);
           setItemToDelete(null);
         },
@@ -119,11 +102,6 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
   const handleCancelRemove = () => {
     setShowDeleteDialog(false);
     setItemToDelete(null);
-  };
-
-  const handleRemove = (id: string) => {
-    console.log(`Remove item ${id}`);
-    // Add your remove API call here
   };
 
   if (isError) {
@@ -186,8 +164,7 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
 
   return (
     <>
-      <div className="flex flex-col h-full z-10">
-        {/* Header */}
+      <div className="flex flex-col h-3/4 z-10">
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -208,33 +185,6 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
             </DrawerClose>
           </div>
         </DrawerHeader>
-        {notification.show && (
-          <div className="px-6 pt-4">
-            <Alert
-              variant={
-                notification.type === "error" ? "destructive" : "default"
-              }
-              className={
-                notification.type === "success"
-                  ? "border-green-600 bg-green-50 z-99"
-                  : ""
-              }
-            >
-              {notification.type === "success" ? (
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4" />
-              )}
-              <AlertTitle className="text-[#211D1F]">
-                {notification.type === "success" ? "Success" : "Error"}
-              </AlertTitle>
-              <AlertDescription className="text-[#211D1F]">
-                {notification.message}
-              </AlertDescription>
-            </Alert>
-          </div>
-        )}
-        {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6">
           {cartItems.length === 0 ? (
             <div className="text-center py-12">
@@ -257,7 +207,6 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
           )}
         </div>
       </div>
-      {/* AlertDialog for confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="z-99 bg-white">
           <AlertDialogHeader>

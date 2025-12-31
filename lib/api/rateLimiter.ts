@@ -1,5 +1,3 @@
-// lib/api/rateLimiter.ts
-
 /**
  * RateLimiter class untuk membatasi jumlah request dalam waktu tertentu
  */

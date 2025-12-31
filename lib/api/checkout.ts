@@ -13,7 +13,7 @@ export async function createCheckout(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': accessToken, // Required!
+        'Authorization': accessToken,
       },
       body: JSON.stringify(input),
     })
