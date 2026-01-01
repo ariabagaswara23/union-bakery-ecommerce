@@ -182,7 +182,7 @@ const CartList = ({
   return (
     <>
       <div className="flex flex-col h-full z-10">
-        <DrawerHeader className="border-b">
+        <DrawerHeader className="border-b shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <DrawerTitle className="text-2xl font-bold text-[#211D1F]">
@@ -202,7 +202,7 @@ const CartList = ({
             </DrawerClose>
           </div>
         </DrawerHeader>
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 pb-32 md:pb-6">
           {cartItems.length === 0 ? (
             <div className="text-center py-12">
               <ShoppingCart className="w-16 h-16 mx-auto text-gray-300 mb-4" />
@@ -223,7 +223,7 @@ const CartList = ({
             </div>
           )}
         </div>
-        <DrawerFooter className="border-t border-[#211D1F] bg-white z-12">
+        <DrawerFooter className="border-t border-[#211D1F] bg-white shrink-0 sticky bottom-0 z-20">
           <div className="space-y-4">
             <div className="flex justify-between text-sm font-medium text-[#211D1F]/70 items-center">
               <span className="uppercase">Subtotal</span>
