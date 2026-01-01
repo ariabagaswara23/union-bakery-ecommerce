@@ -93,7 +93,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
           >
             <Alert
               className={`
-                w-96 shadow-2xl border-2
+                w-[calc(100vw-2rem)] max-w-md mx-4 shadow-2xl border-2
                 ${getAlertStyles(alert.type).className}
               `}
             >
