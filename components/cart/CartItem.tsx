@@ -45,7 +45,7 @@ const CartItem = ({ item, onRemove, onEdit }: CartItemProps) => {
   };
 
   return (
-    <div className="border-b border-dashed border-gray-300 rounded p-4">
+    <div className="border-b border-dashed border-gray-300 rounded py-4">
       <div className="flex gap-4">
         <div className="relative w-20 h-20 shrink-0">
           <Image

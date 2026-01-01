@@ -79,13 +79,13 @@ const Navbar = () => {
                 Shop
               </Link>
               <Link
-                href="/about"
+                href="#group"
                 className="text-white hover:text-gray-300 font-bold text-xs uppercase"
               >
                 Group Order
               </Link>
               <Link
-                href="/contact"
+                href="#faq"
                 className="text-white hover:text-gray-300 font-bold text-xs uppercase"
               >
                 FAQ
@@ -179,14 +179,14 @@ const Navbar = () => {
                 Shop
               </Link>
               <Link
-                href="/about"
+                href="#group"
                 className="text-white hover:text-gray-300 font-bold text-xs uppercase"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Group Order
               </Link>
               <Link
-                href="/contact"
+                href="#faq"
                 className="text-white hover:text-gray-300 font-bold text-xs uppercase"
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -196,7 +196,7 @@ const Navbar = () => {
               {isAuthenticated && customerName ? (
                 <>
                   <div className="text-white font-bold text-sm uppercase mt-2">
-                    Hello, {customerName}!
+                    {customerName}
                   </div>
                   <button
                     onClick={() => {

@@ -1,9 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "../ui/button";
 import { Drawer, DrawerContent, DrawerFooter } from "../ui/drawer";
-import { CartData } from "../../types/cart";
 import CartList from "./CartList";
 import { useEffect, useRef, useState } from "react";
 import CartEdit from "./CartEdit";
@@ -22,10 +20,6 @@ type CartStep = "cart" | "edit" | "delivery";
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { cartItems, isLoading, isError, subtotal } = useEnrichedCart();
   const { showAlert } = useAlert();
-
-  const formatPrice = (amount: number) => {
-    return Math.round(amount / 1000);
-  };
 
   const [currentStep, setCurrentStep] = useState<CartStep>("cart");
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -86,6 +80,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     }
   };
 
+  const handleDelivery = () => {
+    setCurrentStep("delivery");
+  };
+
   const handleCheckoutSuccess = () => {
     localStorage.removeItem("pendingCheckout");
     localStorage.removeItem("shouldAutoJump");
@@ -108,6 +106,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
             onEdit={handleEdit}
             isLoading={isLoading}
             isError={isError}
+            onDelivery={handleDelivery}
+            subtotal={subtotal}
           />
         );
       case "edit":
@@ -147,27 +147,6 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
           />
         </div>
         {renderStepContent()}
-        {currentStep === "cart" && (
-          <DrawerFooter className="border-t border-[#211D1F] bg-white z-10">
-            <div className="space-y-4">
-              <div className="flex justify-between text-sm font-medium text-[#211D1F]/70 items-center">
-                <span className="uppercase">Subtotal</span>
-                <span
-                  style={{ fontFamily: "var(--font-rozha)" }}
-                  className="text-[#661419] text-2xl font-normal"
-                >
-                  {formatPrice(subtotal)}
-                </span>
-              </div>
-              <Button
-                className="w-full bg-[#5a6e3a] hover:bg-[#4a5e2a] text-white py-6 uppercase font-semibold"
-                onClick={() => setCurrentStep("delivery")}
-              >
-                Choose Delivery Details
-              </Button>
-            </div>
-          </DrawerFooter>
-        )}
       </DrawerContent>
     </Drawer>
   );

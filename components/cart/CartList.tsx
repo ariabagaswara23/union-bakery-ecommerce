@@ -1,12 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import { DrawerClose, DrawerHeader, DrawerTitle } from "../ui/drawer";
+import {
+  DrawerClose,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "../ui/drawer";
 import { Button } from "../ui/button";
-import { CheckCircle2, ShoppingCart, X, XCircle } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import CartItem from "./CartItem";
 import { getCartId, useRemoveCartLine } from "@/hooks/useCart";
 import { useAlert } from "@/contexts/AlertContext";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,11 +25,20 @@ import {
 interface CartListProps {
   cartItems: any[];
   onEdit: (id: string) => void;
+  onDelivery: () => void;
   isLoading: boolean;
   isError: boolean;
+  subtotal: number;
 }
 
-const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
+const CartList = ({
+  cartItems,
+  onEdit,
+  isLoading,
+  isError,
+  onDelivery,
+  subtotal,
+}: CartListProps) => {
   const removeCartLine = useRemoveCartLine();
   const { showAlert } = useAlert();
 
@@ -34,6 +47,10 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
     lineId: string;
     productTitle?: string;
   } | null>(null);
+
+  const formatPrice = (amount: number) => {
+    return Math.round(amount / 1000);
+  };
 
   if (isLoading) {
     return (
@@ -164,7 +181,7 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
 
   return (
     <>
-      <div className="flex flex-col h-3/4 z-10">
+      <div className="flex flex-col h-full z-10">
         <DrawerHeader className="border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -206,6 +223,25 @@ const CartList = ({ cartItems, onEdit, isLoading, isError }: CartListProps) => {
             </div>
           )}
         </div>
+        <DrawerFooter className="border-t border-[#211D1F] bg-white z-12">
+          <div className="space-y-4">
+            <div className="flex justify-between text-sm font-medium text-[#211D1F]/70 items-center">
+              <span className="uppercase">Subtotal</span>
+              <span
+                style={{ fontFamily: "var(--font-rozha)" }}
+                className="text-[#661419] text-2xl font-normal"
+              >
+                {formatPrice(subtotal)}
+              </span>
+            </div>
+            <Button
+              className="w-full bg-[#5a6e3a] hover:bg-[#4a5e2a] text-white py-6 uppercase font-semibold"
+              onClick={onDelivery}
+            >
+              Choose Delivery Details
+            </Button>
+          </div>
+        </DrawerFooter>
       </div>
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="z-99 bg-white">
