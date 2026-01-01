@@ -50,6 +50,11 @@ export function logout(): void {
   localStorage.removeItem('accessToken')
   localStorage.removeItem('tokenExpiresAt')
   localStorage.removeItem('cartAssociated')
+  localStorage.removeItem('cartId')
+  localStorage.removeItem('cart')
+
+  localStorage.removeItem('pendingCheckout')
+  localStorage.removeItem('shouldAutoJump')
 
 }
 

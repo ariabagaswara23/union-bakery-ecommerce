@@ -3,6 +3,7 @@ import { Card } from "../ui/card";
 import Image from "next/image";
 import { useProducts } from "@/hooks/useProducts";
 import Link from "next/link";
+import { ProductCard } from "./ProductCard";
 
 const ProductList = () => {
   const { data, isLoading, isError, error } = useProducts();
@@ -68,47 +69,8 @@ const ProductList = () => {
           *All prices shown are in thousands of rupiah
         </p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6 mt-8">
-          {data?.data.map((product, index) => (
-            <Link key={product.id} href={`/products/${product.handle}`}>
-              <Card className="bg-transparent border-0 shadow-none rounded-none">
-                {product.bestseller && (
-                  <div className="relative">
-                    <span className="absolute top-2 left-0 z-10 bg-[#5a6e3a] text-white text-xs px-6 py-2 uppercase font-semibold after:content-[''] after:absolute after:right-[-16px] after:top-0 after:bottom-0 after:border-l-[16px] after:border-l-[#5a6e3a] after:border-t-[16px] after:border-t-transparent after:border-b-[16px] after:border-b-transparent">
-                      Best Seller
-                    </span>
-                  </div>
-                )}
-                {/* Product Image */}
-                {product.media.nodes[0] && (
-                  <Image
-                    src={product.media.nodes[0].previewImage.url}
-                    alt={
-                      product.media.nodes[0].previewImage.altText ||
-                      product.title
-                    }
-                    width={300}
-                    height={300}
-                    className="rounded-none! w-full aspect-square object-cover"
-                  />
-                )}
-
-                {/* Product Info */}
-                <div className="flex flex-row justify-between mt-2">
-                  <h3 className="text-lg font-semibold text-[#211D1F] uppercase">
-                    {product.title}
-                  </h3>
-                  <span
-                    style={{ fontFamily: "var(--font-rozha)" }}
-                    className="text-xl font-normal text-[#661419] w-1/4 text-end"
-                  >
-                    {Math.round(
-                      parseFloat(product.priceRange.maxVariantPrice.amount) /
-                        1000
-                    )}
-                  </span>
-                </div>
-              </Card>
-            </Link>
+          {data?.data.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>

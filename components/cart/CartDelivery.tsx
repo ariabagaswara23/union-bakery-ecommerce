@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -12,30 +12,53 @@ import {
   SelectValue,
 } from "../ui/select";
 import { DrawerHeader, DrawerTitle } from "../ui/drawer";
-import { Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { useCheckout } from "@/hooks/useCheckout";
-import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { getCartId } from "@/hooks/useCart";
 import { useAlert } from "@/contexts/AlertContext";
 
 interface CartDeliveryProps {
   onBack: () => void;
   onSuccess?: () => void;
+  initialData?: {
+    deliveryDate: string;
+    deliveryTime: string;
+    phone: string;
+  } | null;
 }
 
-const CartDelivery = ({ onBack, onSuccess }: CartDeliveryProps) => {
+const CartDelivery = ({
+  onBack,
+  onSuccess,
+  initialData,
+}: CartDeliveryProps) => {
   const checkout = useCheckout();
   const { showAlert } = useAlert();
 
   const [openDate, setOpenDate] = useState(false);
-  const [deliveryDate, setDeliveryDate] = useState<Date>();
-  const [deliveryTime, setDeliveryTime] = useState<string>("");
-  const [phone, setPhone] = useState<string>("");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(
+    initialData?.deliveryDate
+      ? parse(initialData.deliveryDate, "yyyy-MM-dd", new Date())
+      : undefined
+  );
+  const [deliveryTime, setDeliveryTime] = useState<string>(
+    initialData?.deliveryTime || ""
+  );
+  const [phone, setPhone] = useState<string>(initialData?.phone || "");
 
   const timeSlots = ["11AM - 2PM", "3PM - 5PM", "6PM - 8PM"];
+
+  useEffect(() => {
+    if (initialData) {
+      showAlert(
+        "info",
+        "Your delivery details have been restored. Please review and checkout."
+      );
+    }
+  }, [initialData]);
 
   const handleProceed = () => {
     if (!deliveryDate || !deliveryTime || !phone) {
@@ -57,16 +80,23 @@ const CartDelivery = ({ onBack, onSuccess }: CartDeliveryProps) => {
     }
 
     if (!accessToken) {
-      showAlert("error", "Please login to complete checkout");
-      localStorage.setItem("checkoutReturnUrl", window.location.pathname);
+      showAlert("warning", "Please login to complete checkout");
+
       localStorage.setItem(
-        "pendingCheckoutData",
+        "pendingCheckout",
         JSON.stringify({
           deliveryDate: format(deliveryDate, "yyyy-MM-dd"),
           deliveryTime,
           phone,
+          step: "delivery",
+          timestamp: Date.now(),
         })
       );
+
+      localStorage.setItem("shouldAutoJump", "true");
+
+      localStorage.setItem("checkoutReturnUrl", window.location.pathname);
+
       setTimeout(() => {
         window.location.href = "/login";
       }, 1500);
@@ -80,13 +110,14 @@ const CartDelivery = ({ onBack, onSuccess }: CartDeliveryProps) => {
       deliveryTime,
     };
 
-    console.log("Creating checkout:", checkoutInput);
-
     checkout.mutate(
       { input: checkoutInput, accessToken },
       {
         onSuccess: (data) => {
           showAlert("success", data.data.message || "Checkout successful!");
+
+          localStorage.removeItem("pendingCheckout");
+          localStorage.removeItem("shouldAutoJump");
 
           setTimeout(() => {
             if (onSuccess) {
@@ -128,7 +159,7 @@ const CartDelivery = ({ onBack, onSuccess }: CartDeliveryProps) => {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="w-full justify-between text-left font-normal bg-transparent text-[#211D1F] border border-[#211D1F]/70"
+                    className="w-full justify-between text-left font-normal bg-transparent text-[#211D1F] hover:text-[#211D1F]/90 focus:text-[#211D1F] border border-[#211D1F]/70"
                   >
                     {deliveryDate ? format(deliveryDate, "PPP") : "Pick a date"}
                     <Calendar className="ml-2 h-4 w-4" />
@@ -145,7 +176,7 @@ const CartDelivery = ({ onBack, onSuccess }: CartDeliveryProps) => {
                       setDeliveryDate(newDate);
                       setOpenDate(false);
                     }}
-                    className="text-[#211D1F] z-[999]"
+                    className="text-[#211D1F] hover:text-[#211D1F]/90 z-[999]"
                     disabled={{ before: new Date() }}
                     initialFocus
                     modifiersClassNames={{

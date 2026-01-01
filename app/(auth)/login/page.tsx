@@ -43,14 +43,12 @@ const LoginPage = () => {
       { email, password },
       {
         onSuccess: () => {
-          const returnUrl = localStorage.getItem("checkoutReturnUrl");
+          const returnUrl = localStorage.getItem("checkoutReturnUrl") || "/";
           localStorage.removeItem("checkoutReturnUrl");
 
-          if (returnUrl) {
+          setTimeout(() => {
             window.location.href = returnUrl;
-          } else {
-            router.push("/");
-          }
+          }, 1000);
         },
         onError: (error) => {
           setError(error.message);

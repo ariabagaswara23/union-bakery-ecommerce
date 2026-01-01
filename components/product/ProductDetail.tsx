@@ -9,6 +9,15 @@ import { useEffect, useState } from "react";
 import { useAddToCart } from "@/hooks/useCart";
 import { Input } from "../ui/input";
 import { useAlert } from "@/contexts/AlertContext";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../ui/breadcrumb";
+import { getMockProductBadge } from "@/lib/mockBadges";
 
 interface ProductDetailProps {
   slug: string;
@@ -17,6 +26,8 @@ interface ProductDetailProps {
 const ProductDetail = ({ slug }: ProductDetailProps) => {
   const { data, isLoading, isError, error } = useProductDetail(slug);
   const addToCart = useAddToCart();
+
+  const badge = getMockProductBadge(slug);
 
   const { showAlert } = useAlert();
 
@@ -157,7 +168,36 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
           className="object-cover"
         />
       </div>
-      <div className="relative z-10 grid md:grid-cols-2 items-start gap-8 p-6 md:p-0">
+      <div className="hidden md:flex relative bg-[#2F3915] py-3 px-4 md:px-6">
+        <Breadcrumb>
+          <BreadcrumbList className="text-white z-100">
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href="/"
+                className="text-white hover:text-white/80 uppercase text-xs font-bold"
+              >
+                Home
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-white">•</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                href="/products"
+                className="text-white hover:text-white/80 uppercase text-xs font-bold"
+              >
+                Shop
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-white">•</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-white uppercase text-xs font-bold">
+                {product?.title || "Product"}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      <div className="relative z-10 grid md:grid-cols-2 items-start gap-8 pb-6 md:p-0">
         <div className="relative h-125 md:h-150 top-0">
           {product.images.nodes[0] && (
             <Image
@@ -169,7 +209,7 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
           )}
         </div>
         <div className="p-4 md:p-8 space-y-6 pb-32">
-          <span className="badge">BEST SELLER</span>
+          {badge && <span className="badge">{badge}</span>}
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-2xl font-bold mb-2 text-black">
@@ -188,42 +228,44 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
           </div>
           <hr className="h-1 text-[#211D1F]" />
           {sizeOption && (
-            <div>
-              <h2 className="text-lg font-semibold text-[#211D1F] uppercase">
-                Cake Size
-              </h2>
-              <RadioGroup
-                value={selectedSize}
-                onValueChange={setSelectedSize}
-                className="grid grid-cols-2 lg:grid-cols-4 gap-3"
-              >
-                {sizeOption.optionValues.map((option) => (
-                  <div key={option.id}>
-                    <RadioGroupItem
-                      value={option.name}
-                      id={option.id}
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor={option.id}
-                      className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
-                    >
-                      <div
-                        style={{ fontFamily: "var(--font-rozha)" }}
-                        className="text-[32px] text-[#661419] font-bold"
+            <>
+              <div>
+                <h2 className="text-lg font-semibold text-[#211D1F] uppercase">
+                  Cake Size
+                </h2>
+                <RadioGroup
+                  value={selectedSize}
+                  onValueChange={setSelectedSize}
+                  className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+                >
+                  {sizeOption.optionValues.map((option) => (
+                    <div key={option.id}>
+                      <RadioGroupItem
+                        value={option.name}
+                        id={option.id}
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor={option.id}
+                        className="flex flex-col gap-1 items-center justify-center border-2 border-dashed border-gray-300 peer-data-[state=checked]:border-solid peer-data-[state=checked]:border-[#3F4B1F] p-4 rounded text-center cursor-pointer transition hover:border-[#8b4513] h-20"
                       >
-                        {option.name}
-                      </div>
-                      {option.name !== "SLICE" && (
-                        <div className="text-sm text-[#211D1F]">cm</div>
-                      )}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
+                        <div
+                          style={{ fontFamily: "var(--font-rozha)" }}
+                          className="text-[32px] text-[#661419] font-bold"
+                        >
+                          {option.name}
+                        </div>
+                        {option.name !== "SLICE" && (
+                          <div className="text-sm text-[#211D1F]">cm</div>
+                        )}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+              <hr className="h-1 border-dashed text-[#333333]" />
+            </>
           )}
-          <hr className="h-1 border-dashed text-[#333333]" />
           <div className="">
             <div className="flex items-center justify-between mb-2">
               <div>
