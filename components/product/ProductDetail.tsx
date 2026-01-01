@@ -212,7 +212,7 @@ const ProductDetail = ({ slug }: ProductDetailProps) => {
           {badge && <span className="badge">{badge}</span>}
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold mb-2 text-black">
+              <h1 className="text-2xl font-bold mb-2 text-black uppercase">
                 {product.title}
               </h1>
               <p className="text-[#211D1F] font-normal text-sm">
