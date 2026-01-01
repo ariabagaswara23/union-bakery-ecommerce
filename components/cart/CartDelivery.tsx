@@ -137,16 +137,16 @@ const CartDelivery = ({
   return (
     <>
       <div className="flex flex-col h-full z-10">
-        <DrawerHeader className="border-b ">
+        <DrawerHeader className="border-b shrink-0">
           <DrawerTitle
             onClick={onBack}
-            className="text-sm font-semibold text-[#3F4B1F] uppercase"
+            className="text-sm font-semibold text-[#3F4B1F] uppercase cursor-pointer hover:text-[#2a3b15]"
           >
             Back
           </DrawerTitle>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto p-6 ">
+        <div className="flex-1 overflow-y-auto p-6 pb-32 md:pb-6">
           <div className="space-y-6">
             <div>
               <Label
@@ -239,11 +239,11 @@ const CartDelivery = ({
           </div>
         </div>
 
-        <div className="border-t border-[#211D1F] bg-white p-6">
+        <div className="border-t border-[#211D1F] bg-white p-6 shrink-0 sticky bottom-0 z-20">
           <Button
             onClick={handleProceed}
             disabled={!isFormValid || checkout.isPending}
-            className="w-full bg-[#3F4B1F] hover:bg-[#8b9876] disabled:bg-gray-300 text-white py-6 uppercase font-semibold"
+            className="w-full bg-[#3F4B1F] hover:bg-[#8b9876] disabled:bg-gray-300 text-white py-5 md:py-6 uppercase font-semibold text-sm md:text-base"
           >
             {checkout.isPending ? (
               <div className="flex items-center justify-center gap-2">

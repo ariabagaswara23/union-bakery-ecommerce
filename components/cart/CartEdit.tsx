@@ -72,7 +72,7 @@ const CartEdit = ({ item, onBack }: CartEditProps) => {
 
   return (
     <div className="flex flex-col h-full z-10">
-      <DrawerHeader className="border-b">
+      <DrawerHeader className="border-b shrink-0">
         <Button
           variant="ghost"
           size="icon"
@@ -88,8 +88,8 @@ const CartEdit = ({ item, onBack }: CartEditProps) => {
         <hr className="text-[#211D1F]" />
       </DrawerHeader>
 
-      <div className="flex-1 overflow-y-auto px-6">
-        <div className="space-y-3">
+      <div className="flex-1 overflow-y-auto px-6 pb-32 md:pb-6">
+        <div className="space-y-3 py-4">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div>
@@ -200,7 +200,7 @@ const CartEdit = ({ item, onBack }: CartEditProps) => {
         </div>
       </div>
 
-      <div className="border-t border-[#211D1F] bg-white p-6">
+      <div className="border-t border-[#211D1F] bg-white p-6 shrink-0 sticky bottom-0 z-20">
         <Button
           onClick={handleSave}
           disabled={updateCartLine.isPending}
